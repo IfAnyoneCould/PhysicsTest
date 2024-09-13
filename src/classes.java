@@ -175,8 +175,14 @@ class ParticleForceRegistry {
     public void add(Particle particle, ParticleForceGenerator fg) {
         this.registrations.add(new ParticleForceRegistration(particle,fg));
     }
-    public void remove(Particle particle, ParticleForceGenerator fg) {}
-    public void clear() {}
+
+    public void remove(Particle particle, ParticleForceGenerator fg) {
+        this.registrations.remove(new ParticleForceRegistration(particle,fg));
+    }
+
+    public void clear() {
+        this.registrations.clear();
+    }
 
     public void updateForces(double duration) {
 
