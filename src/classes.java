@@ -1,4 +1,5 @@
 import java.lang.Math;
+import java.util.ArrayList;
 
 class Vector3 {
     public double x = 0d;
@@ -105,12 +106,18 @@ class Particle {
     public Vector3 position;
     public Vector3 velocity;
     public Vector3 acceleration;
-    public Vector3 force = new Vector3(0,0,0);
+    public Vector3 forceAccum;
     public Vector3 gravity = new Vector3(0.0, -15.0, 0.0);
 
     // inverse mass is 1/mass
     public double inverseMass;
     public double damping;
+
+    public boolean hasFiniteMass = true;
+
+    public void setInfiniteMass() {
+        this.hasFiniteMass = false;
+    }
 
     public void setMass(double mass) {
         this.inverseMass = 1/mass;
@@ -120,19 +127,103 @@ class Particle {
         this.inverseMass = inverseMass;
     }
 
+    public double getMass() {
+        return 1/this.inverseMass;
+    }
+
+    public void clearAccumulator() {
+        this.forceAccum = new Vector3(0.0, 0.0, 0.0);
+    }
+
+    public void addForce(Vector3 force) {
+        this.forceAccum.add(force);
+    }
+
     public void integrate(double duration) {
 
         if (duration > 0) {
             this.position.addScaled(this.velocity, duration);
 
-            this.acceleration = this.gravity;
-
-            // for now acceleration does not change
             Vector3 newAcceleration = this.acceleration;
-            newAcceleration.addScaled(this.force, this.inverseMass);
+            newAcceleration.addScaled(this.forceAccum, this.inverseMass);
 
             this.velocity.addScaled(newAcceleration, duration);
             this.velocity.multiply(Math.pow(this.damping, duration));
+
+            this.clearAccumulator();
         }
+    }
+}
+
+class ParticleForceGenerator {
+    public void updateForce(Particle particle, double duration) {}
+}
+
+class ParticleForceRegistration {
+    Particle particle;
+    ParticleForceGenerator fg;
+
+    public ParticleForceRegistration(Particle particle, ParticleForceGenerator fg) {
+        this.particle = particle;
+        this.fg = fg;
+    }
+}
+
+class ParticleForceRegistry {
+    private ArrayList<ParticleForceRegistration> registrations;
+
+    public void add(Particle particle, ParticleForceGenerator fg) {
+        this.registrations.add(new ParticleForceRegistration(particle,fg));
+    }
+    public void remove(Particle particle, ParticleForceGenerator fg) {}
+    public void clear() {}
+
+    public void updateForces(double duration) {
+
+        for (ParticleForceRegistration r : this.registrations) {
+            r.fg.updateForce(r.particle, duration);
+        }
+    }
+}
+
+// force generators
+
+class ParticleGravity extends ParticleForceGenerator {
+    public Vector3 gravity;
+
+    public ParticleGravity(Vector3 gravity) {
+        this.gravity = gravity;
+    }
+
+    public void updateForce(Particle particle, double duration) {
+        if (!particle.hasFiniteMass) {return;}
+
+        particle.addForce(this.gravity.newMultiply(particle.getMass()));
+    }
+}
+
+class ParticleDrag extends ParticleForceGenerator {
+    public double k1;
+    public double k2;
+
+    public ParticleDrag(double k1, double k2) {
+        this.k1 = k1;
+        this.k2 = k2;
+    }
+
+    public void updateForce(Particle particle, double duration) {
+        if (!particle.hasFiniteMass) {return;}
+
+        Vector3 force = particle.velocity;
+
+        double dragCoef = force.magnitude();
+        dragCoef = k1 * dragCoef + k2 * dragCoef;
+
+        force.normalize();
+
+        force.multiply(-dragCoef);
+
+        particle.addForce(force);
+
     }
 }
