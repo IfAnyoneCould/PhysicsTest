@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-
 public class Particle {
 
     public Vector3 position;
@@ -44,6 +42,7 @@ public class Particle {
             this.position.addScaled(this.velocity, duration);
 
             Vector3 newAcceleration = this.acceleration;
+            newAcceleration.add(this.gravity);
             newAcceleration.addScaled(this.forceAccum, this.inverseMass);
 
             this.velocity.addScaled(newAcceleration, duration);
@@ -53,5 +52,3 @@ public class Particle {
         }
     }
 }
-
-
