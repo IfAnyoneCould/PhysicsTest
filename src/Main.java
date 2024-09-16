@@ -1,6 +1,6 @@
 public class Main {
 
-    private static final int TARGET_FPS = 60;
+    private static final int TARGET_FPS = 30;
     private static final long OPTIMAL_TIME = 1000000000 / TARGET_FPS;
 
     public static void main(String[] args) {
@@ -13,10 +13,14 @@ public class Main {
         long fpsTimeCounter = 0;
         int realFPS = 0;
 
+        //create start state and other variables here
 
-
-
-
+        Particle particle = new Particle();
+        particle.position = new Vector3(0,0,0);
+        particle.velocity = new Vector3(1,2,3);
+        particle.acceleration = new Vector3(0,0,0);
+        particle.setMass(100);
+        particle.clearAccumulator();
 
         while (true) {
             long now = System.nanoTime();
@@ -30,10 +34,12 @@ public class Main {
             double delta = elapsedTime / ((double) OPTIMAL_TIME);
 
             // do updates here
+            particle.integrate(delta);
 
-
-
-            // render here
+            if ((frames & 1) == 0) {
+                //render here
+                System.out.println(particle.position.x + " " + particle.position.y + " " + particle.position.z);
+            }
 
 
             // sleep calculations

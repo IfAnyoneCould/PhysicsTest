@@ -4,11 +4,11 @@ public class Particle {
     public Vector3 velocity;
     public Vector3 acceleration;
     public Vector3 forceAccum;
-    public Vector3 gravity = new Vector3(0.0, -15.0, 0.0);
+    public Vector3 gravity = new Vector3(0.0, -1.5, 0.0);
 
     // inverse mass is 1/mass
     public double inverseMass;
-    public double damping;
+    public double damping = 0.95;
 
     public boolean hasFiniteMass = true;
 
